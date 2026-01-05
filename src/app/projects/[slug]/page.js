@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import groq from "groq";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { PortableText } from "@portabletext/react";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
@@ -21,12 +21,24 @@ const projectQuery = groq`*[_type=="project" && slug.current==$slug][0]{
 }`;
 
 export default async function ProjectDetailPage({ params }) {
-  const project = await client.fetch(projectQuery, { slug: params.slug });
+  const { slug } = await params; // Next 15/16: params can be async
+  if (!slug || Array.isArray(slug)) notFound();
+
+  const project = await client.fetch(projectQuery, { slug });
   if (!project) notFound();
 
+  // ✅ DIRECT BEHAVIOR:
+  // If a published site URL exists, go there immediately.
+  // Otherwise, fall back to GitHub.
+  if (project.liveUrl) redirect(project.liveUrl);
+  if (project.githubUrl) redirect(project.githubUrl);
+
+  // If neither URL exists, render the detail page as a fallback.
   return (
     <main className="max-w-3xl mx-auto p-6">
-      <Link className="text-sm underline" href="/projects">← Back to Projects</Link>
+      <Link className="text-sm underline" href="/projects">
+        ← Back to Projects
+      </Link>
 
       <h1 className="mt-6 text-3xl font-semibold">{project.title}</h1>
       {project.summary ? <p className="mt-3 opacity-80">{project.summary}</p> : null}
@@ -43,13 +55,24 @@ export default async function ProjectDetailPage({ params }) {
 
       <div className="mt-6 flex flex-wrap gap-3">
         {project.githubUrl ? (
-          <a className="rounded-full border px-4 py-2 text-sm underline" href={project.githubUrl} target="_blank" rel="noreferrer">
+          <a
+            className="rounded-full border px-4 py-2 text-sm underline"
+            href={project.githubUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
             GitHub
           </a>
         ) : null}
+
         {project.liveUrl ? (
-          <a className="rounded-full border px-4 py-2 text-sm underline" href={project.liveUrl} target="_blank" rel="noreferrer">
-            Live/Demo
+          <a
+            className="rounded-full border px-4 py-2 text-sm underline"
+            href={project.liveUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Published Site
           </a>
         ) : null}
       </div>

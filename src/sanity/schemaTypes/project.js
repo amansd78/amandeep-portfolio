@@ -21,7 +21,7 @@ export const project = {
     { name: "tags", title: "Tags", type: "array", of: [{ type: "string" }], options: { layout: "tags" } },
 
     { name: "githubUrl", title: "GitHub URL", type: "url" },
-    { name: "liveUrl", title: "Live/Demo URL", type: "url" },
+    { name: "liveUrl", title: "Site URL", type: "url" },
 
     { name: "featured", title: "Featured on Homepage", type: "boolean", initialValue: false },
     { name: "publishedAt", title: "Published At", type: "datetime" },
